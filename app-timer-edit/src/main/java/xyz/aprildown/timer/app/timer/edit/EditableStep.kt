@@ -211,7 +211,6 @@ class EditableStep(
                 }
             }
 
-            behaviour.setIsStartOrLastStep(item.stepType == StepType.START || item.stepType == StepType.END)
             behaviour.setIsInGroup(inAGroup)
             behaviour.setEnabledColor(color)
             behaviour.setBehaviours(item.behaviour)

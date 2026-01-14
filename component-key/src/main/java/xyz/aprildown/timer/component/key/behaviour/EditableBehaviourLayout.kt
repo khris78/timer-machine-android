@@ -60,7 +60,6 @@ class EditableBehaviourLayout(
     private var colorEnabled: Int = Color.RED
 
     private var isInGroup: Boolean = false
-    private var isStartOrLastStep: Boolean = false
 
     private val data = LinkedHashMap<BehaviourType, Pair<Chip, BehaviourEntity>>()
     private var listener: Listener? = null
@@ -80,7 +79,6 @@ class EditableBehaviourLayout(
             val showTypes = enabledBehaviourTypes.filter {
                 type -> type !in currentTypes
                     && (type != BehaviourType.SKIP_IN_GROUP || isInGroup)
-                    && (type != BehaviourType.SKIP || !isStartOrLastStep)
             }
             if (showTypes.isNotEmpty()) {
                 popupMenu {
@@ -130,10 +128,6 @@ class EditableBehaviourLayout(
 
     fun setIsInGroup(inGroup: Boolean) {
         isInGroup = inGroup
-    }
-
-    fun setIsStartOrLastStep(startOrLast: Boolean) {
-        isStartOrLastStep = startOrLast
     }
 
     fun getBehaviours(): List<BehaviourEntity> = data.map { it.value.second }
