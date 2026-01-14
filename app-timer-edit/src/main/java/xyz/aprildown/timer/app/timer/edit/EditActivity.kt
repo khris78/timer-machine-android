@@ -1267,7 +1267,7 @@ class EditActivity :
                 .setNegativeButton(RBase.string.discard) { _, _ ->
                     onLeave.invoke()
                 }
-                .setNeutralButton(RBase.string.cancel, null)
+                .setNeutralButton(android.R.string.cancel, null)
                 .show()
         }
     }
