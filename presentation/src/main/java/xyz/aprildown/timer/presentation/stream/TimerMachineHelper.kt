@@ -6,11 +6,14 @@ import xyz.aprildown.timer.domain.entities.BehaviourEntity
 import xyz.aprildown.timer.domain.entities.BehaviourType
 import xyz.aprildown.timer.domain.entities.HalfAction
 import xyz.aprildown.timer.domain.entities.SkipAction
+import xyz.aprildown.timer.domain.entities.SkipInGroupAction
 import xyz.aprildown.timer.domain.entities.StepEntity
 import xyz.aprildown.timer.domain.entities.TimerEntity
 import xyz.aprildown.timer.domain.entities.VoiceAction
 import xyz.aprildown.timer.domain.entities.toHalfAction
 import xyz.aprildown.timer.domain.entities.toSkipAction
+import xyz.aprildown.timer.domain.entities.toSkipInGroupAction
+import kotlin.collections.indices
 
 /**
  * The whole work is doubled because we need to check loop index.
@@ -921,20 +924,40 @@ internal fun TimerEntity.shouldSkip(index: TimerIndex): Boolean {
         is TimerIndex.Group -> {
             getStep(index)?.shouldSkip(
                 loopIndex = index.loopIndex,
-                maxLoop = getGroup(index)?.loop ?: 0
+                maxLoop = loop,
+                index.groupStepIndex.loopIndex,
+                getGroup(index)?.loop ?: -1
             ) == true
         }
         TimerIndex.End -> endStep?.shouldSkip(loopIndex = loop - 1, maxLoop = loop) == true
     }
 }
 
-internal fun StepEntity.Step.shouldSkip(loopIndex: Int, maxLoop: Int): Boolean {
+internal fun StepEntity.Step.shouldSkip(loopIndex: Int, maxLoop: Int, groupLoopIndex: Int = -1, groupMaxLoop: Int = -1): Boolean {
+    var ret = false
+
     val target =
         behaviour.find { it.type == BehaviourType.SKIP }?.toSkipAction()?.target
-            ?: return false
-    return when (target) {
-        SkipAction.Target.Last -> loopIndex == maxLoop - 1
-        SkipAction.Target.First -> loopIndex == 0
-        is SkipAction.Target.Loops -> target.loopIndices.any { it == loopIndex }
+    if (target != null) {
+        ret = when (target) {
+            SkipAction.Target.Last -> loopIndex == maxLoop - 1
+            SkipAction.Target.First -> loopIndex == 0
+            is SkipAction.Target.Loops -> target.loopIndices.any { it == loopIndex }
+        }
     }
+
+    if (!ret && groupLoopIndex >= 0) {
+        val targetGroup =
+            behaviour.find { it.type == BehaviourType.SKIP_IN_GROUP }
+                ?.toSkipInGroupAction()?.target
+        if (targetGroup != null) {
+            ret = when (targetGroup) {
+                SkipInGroupAction.Target.Last -> groupLoopIndex == groupMaxLoop - 1
+                SkipInGroupAction.Target.First -> groupLoopIndex == 0
+                is SkipInGroupAction.Target.Loops -> targetGroup.loopIndices.any { it == groupLoopIndex }
+            }
+        }
+    }
+
+    return ret
 }

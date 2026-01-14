@@ -20,23 +20,25 @@ val BehaviourType.iconRes: Int
         BehaviourType.FLASHLIGHT -> RBase.drawable.ic_flashlight
         BehaviourType.IMAGE -> RBase.drawable.ic_image
         BehaviourType.SKIP -> RBase.drawable.ic_skip
+        BehaviourType.SKIP_IN_GROUP -> RBase.drawable.ic_skip
     }
 
-val BehaviourType.nameRes: Int
-    @StringRes
-    get() = when (this) {
-        BehaviourType.MUSIC -> RBase.string.behaviour_music
-        BehaviourType.VIBRATION -> RBase.string.behaviour_vibration
-        BehaviourType.SCREEN -> RBase.string.behaviour_screen
-        BehaviourType.HALT -> RBase.string.behaviour_halt
-        BehaviourType.VOICE -> RBase.string.behaviour_voice
-        BehaviourType.BEEP -> RBase.string.behaviour_beep
-        BehaviourType.HALF -> RBase.string.behaviour_half
-        BehaviourType.COUNT -> RBase.string.behaviour_count
-        BehaviourType.NOTIFICATION -> RBase.string.behaviour_notification
-        BehaviourType.FLASHLIGHT -> RBase.string.behaviour_flashlight
-        BehaviourType.IMAGE -> RBase.string.behaviour_image
-        BehaviourType.SKIP -> RBase.string.behaviour_skip
+@StringRes fun BehaviourType.nameRes(inGroup: Boolean = false): Int {
+        return when (this) {
+            BehaviourType.MUSIC -> RBase.string.behaviour_music
+            BehaviourType.VIBRATION -> RBase.string.behaviour_vibration
+            BehaviourType.SCREEN -> RBase.string.behaviour_screen
+            BehaviourType.HALT -> RBase.string.behaviour_halt
+            BehaviourType.VOICE -> RBase.string.behaviour_voice
+            BehaviourType.BEEP -> RBase.string.behaviour_beep
+            BehaviourType.HALF -> RBase.string.behaviour_half
+            BehaviourType.COUNT -> RBase.string.behaviour_count
+            BehaviourType.NOTIFICATION -> RBase.string.behaviour_notification
+            BehaviourType.FLASHLIGHT -> RBase.string.behaviour_flashlight
+            BehaviourType.IMAGE -> RBase.string.behaviour_image
+            BehaviourType.SKIP -> if (inGroup) RBase.string.behaviour_skip_timer_loop else RBase.string.behaviour_skip
+            BehaviourType.SKIP_IN_GROUP -> RBase.string.behaviour_skip_group_loop
+        }
     }
 
 val BehaviourType.despRes: Int
@@ -54,4 +56,5 @@ val BehaviourType.despRes: Int
         BehaviourType.FLASHLIGHT -> RBase.string.behaviour_flashlight_help
         BehaviourType.IMAGE -> RBase.string.behaviour_image_help
         BehaviourType.SKIP -> RBase.string.behaviour_skip_help
+        BehaviourType.SKIP_IN_GROUP -> RBase.string.behaviour_skip_group_loop_help
     }
