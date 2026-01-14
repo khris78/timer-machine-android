@@ -27,10 +27,12 @@ package xyz.aprildown.timer.domain.entities
  * IMAGE:
  *     str1: The image path
  * SKIP:
- *     str1: The loops
+ *     str1: The loops to skip in the timer main loop
+ * SKIP_IN_GROUP:
+ *     str1: The loops to skip in the group loop
  */
 enum class BehaviourType {
-    MUSIC, VIBRATION, SCREEN, VOICE, HALT, SKIP, BEEP, HALF, COUNT, NOTIFICATION, FLASHLIGHT, IMAGE;
+    MUSIC, VIBRATION, SCREEN, VOICE, HALT, SKIP, SKIP_IN_GROUP, BEEP, HALF, COUNT, NOTIFICATION, FLASHLIGHT, IMAGE;
 
     val hasBoolValue: Boolean
         get() = this == MUSIC || this == BEEP
@@ -437,3 +439,47 @@ fun BehaviourEntity.toSkipAction(): SkipAction {
 }
 
 // endregion Skip
+
+// region Skip in group
+
+data class SkipInGroupAction(val target: Target) : Action {
+    sealed interface Target {
+        data object First : Target
+        data object Last : Target
+        data class Loops(val loopIndices: Set<Int>) : Target {
+            val loopNumbers: List<Int> get() = loopIndices.map { it + 1 }
+        }
+    }
+
+    override fun toBehaviourEntity(): BehaviourEntity {
+        return BehaviourEntity(
+            type = BehaviourType.SKIP_IN_GROUP,
+            str1 = when (target) {
+                Target.First -> "-1"
+                Target.Last -> "-2"
+                is Target.Loops -> target.loopIndices.joinToString(",")
+            }
+        )
+    }
+}
+
+fun BehaviourEntity.toSkipInGroupAction(): SkipInGroupAction {
+    require(type == BehaviourType.SKIP_IN_GROUP)
+    return SkipInGroupAction(
+        target = when (str1) {
+            "-1" -> SkipInGroupAction.Target.First
+            "-2" -> SkipInGroupAction.Target.Last
+            else -> {
+                val loops =
+                    str1.split(",").mapNotNull { it.toIntOrNull() }.toSet()
+                if (loops.isNotEmpty()) {
+                    SkipInGroupAction.Target.Loops(loops)
+                } else {
+                    SkipInGroupAction.Target.Last
+                }
+            }
+        },
+    )
+}
+
+// endregion Skip in group

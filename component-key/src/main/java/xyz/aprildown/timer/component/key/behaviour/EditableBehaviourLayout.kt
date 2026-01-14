@@ -6,7 +6,6 @@ import android.util.AttributeSet
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.OnClickListener
 import android.widget.ImageButton
 import androidx.annotation.ColorInt
 import androidx.annotation.EmptySuper
@@ -60,6 +59,9 @@ class EditableBehaviourLayout(
     @ColorInt
     private var colorEnabled: Int = Color.RED
 
+    private var isInGroup: Boolean = false
+    private var isStartOrLastStep: Boolean = false
+
     private val data = LinkedHashMap<BehaviourType, Pair<Chip, BehaviourEntity>>()
     private var listener: Listener? = null
     private var onBehaviourAddedOrRemovedCallback: (() -> Unit)? = null
@@ -75,14 +77,18 @@ class EditableBehaviourLayout(
 
         binding.btnBehaviourAdd.setOnClickListener { view ->
             val currentTypes = data.keys
-            val showTypes = enabledBehaviourTypes.filter { type -> type !in currentTypes }
+            val showTypes = enabledBehaviourTypes.filter {
+                type -> type !in currentTypes
+                    && (type != BehaviourType.SKIP_IN_GROUP || isInGroup)
+                    && (type != BehaviourType.SKIP || !isStartOrLastStep)
+            }
             if (showTypes.isNotEmpty()) {
                 popupMenu {
                     dropdownGravity = Gravity.TOP or Gravity.END
                     section {
                         showTypes.forEach { type ->
                             item {
-                                label = context.getString(type.nameRes)
+                                label = context.getString(type.nameRes(isInGroup))
                                 icon = type.iconRes
                                 viewBoundCallback = {
                                     TooltipCompatFix.setTooltipText(
@@ -122,7 +128,15 @@ class EditableBehaviourLayout(
         colorEnabled = color
     }
 
+    fun setIsInGroup(inGroup: Boolean) {
+        isInGroup = inGroup
+    }
+
     fun getBehaviours(): List<BehaviourEntity> = data.map { it.value.second }
+
+    fun setIsStartOrLastStep(startOrLast: Boolean) {
+        isStartOrLastStep = startOrLast
+    }
 
     fun setBehaviours(bs: List<BehaviourEntity>) {
         data.values.forEach {
@@ -190,7 +204,7 @@ class EditableBehaviourLayout(
     private fun setViewWithEntity(entity: BehaviourEntity) {
         val type = entity.type
         val view = data[entity.type]?.first ?: return
-        view.setTextIfChanged(entity.getChipText(context))
+        view.setTextIfChanged(entity.getChipText(context, isInGroup))
         data[type] = view to entity
     }
 
@@ -219,7 +233,7 @@ class EditableBehaviourLayout(
         @ColorInt chipColor: Int
     ): Chip = (View.inflate(context, R.layout.view_behavior_chip, null) as Chip).apply {
         setChipIconResource(behaviourType.iconRes)
-        setText(behaviourType.nameRes)
+        setText(behaviourType.nameRes(isInGroup))
         chipBackgroundColor = chipColor.toColorStateList()
         TooltipCompat.setTooltipText(this, context.getString(behaviourType.despRes))
     }

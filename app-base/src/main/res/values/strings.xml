@@ -280,7 +280,10 @@
     <string name="image_pick">Pick an image</string>
 
     <string name="behaviour_skip">Skip</string>
-    <string name="behaviour_skip_help">Skip this step in some loops</string>
+    <string name="behaviour_skip_timer_loop">Skip a timer loop</string>
+    <string name="behaviour_skip_help">Skip this step in some loops of the timer</string>
+    <string name="behaviour_skip_group_loop">Skip a group loop</string>
+    <string name="behaviour_skip_group_loop_help">Skip this step in some loops of the group</string>
     <string name="skip_first">In the first loop</string>
     <string name="skip_last">In the last loop</string>
 
