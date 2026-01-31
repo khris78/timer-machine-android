@@ -28,6 +28,7 @@ android {
             "en",
             "de",
             "es",
+            "fr",
             "nl",
             "pt",
             "ta",
