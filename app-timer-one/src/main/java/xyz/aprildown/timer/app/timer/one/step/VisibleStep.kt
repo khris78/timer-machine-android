@@ -26,6 +26,7 @@ internal class VisibleStep(
     private val currentPositionCallback: CurrentPositionCallback,
     private val stepLongClickListener: OnStepLongClickListener,
     private val imageCheckListener: ((ImageAction) -> Unit)?,
+    private val inGroup: Boolean = false,
 ) : AbstractItem<VisibleStep.ViewHolder>() {
 
     override val layoutRes: Int = R.layout.item_step_step
@@ -98,7 +99,7 @@ internal class VisibleStep(
             binding.textTitle.text = step.label
             binding.textTime.text = step.length.produceTime()
             binding.layoutBehaviour.run {
-                setBehaviours(step.behaviour)
+                setBehaviours(step.behaviour, inGroup)
                 setEnabledColor(typeColor)
                 onImageCheck = this@VisibleStep.imageCheckListener
             }

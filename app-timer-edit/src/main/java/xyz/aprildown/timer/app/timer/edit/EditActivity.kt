@@ -69,6 +69,7 @@ import xyz.aprildown.timer.domain.entities.toMusicAction
 import xyz.aprildown.timer.domain.entities.toNotificationAction
 import xyz.aprildown.timer.domain.entities.toScreenAction
 import xyz.aprildown.timer.domain.entities.toSkipAction
+import xyz.aprildown.timer.domain.entities.toSkipInGroupAction
 import xyz.aprildown.timer.domain.entities.toVibrationAction
 import xyz.aprildown.timer.domain.entities.toVoiceAction
 import xyz.aprildown.timer.domain.usecases.Fruit
@@ -824,6 +825,19 @@ class EditActivity :
                         },
                     )
                 }
+                BehaviourType.SKIP_IN_GROUP -> {
+                    addSkipInGroupItems(
+                        context = this@EditActivity,
+                        action = current.toSkipInGroupAction(),
+                        onLoopsChange = { target ->
+                            changeBehaviour(BehaviourType.SKIP_IN_GROUP, position) {
+                                it.toSkipInGroupAction().copy(target = target)
+                                    .toBehaviourEntity()
+                            }
+                            postUpdateTotalTime()
+                        },
+                    )
+                }
                 else -> Unit
             }
             section {
@@ -898,7 +912,7 @@ class EditActivity :
     }
 
     override fun onBehaviourAdded(type: BehaviourType) {
-        if (type == BehaviourType.SKIP) {
+        if (type == BehaviourType.SKIP || type == BehaviourType.SKIP_IN_GROUP) {
             postUpdateTotalTime()
         }
     }

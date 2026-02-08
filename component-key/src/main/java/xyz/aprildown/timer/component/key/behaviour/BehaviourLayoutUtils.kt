@@ -6,6 +6,7 @@ import xyz.aprildown.timer.domain.entities.BehaviourType
 import xyz.aprildown.timer.domain.entities.CountAction
 import xyz.aprildown.timer.domain.entities.HalfAction
 import xyz.aprildown.timer.domain.entities.SkipAction
+import xyz.aprildown.timer.domain.entities.SkipInGroupAction
 import xyz.aprildown.timer.domain.entities.VibrationAction
 import xyz.aprildown.timer.domain.entities.toBeepAction
 import xyz.aprildown.timer.domain.entities.toCountAction
@@ -13,12 +14,13 @@ import xyz.aprildown.timer.domain.entities.toHalfAction
 import xyz.aprildown.timer.domain.entities.toMusicAction
 import xyz.aprildown.timer.domain.entities.toNotificationAction
 import xyz.aprildown.timer.domain.entities.toSkipAction
+import xyz.aprildown.timer.domain.entities.toSkipInGroupAction
 import xyz.aprildown.timer.domain.entities.toVibrationAction
 import xyz.aprildown.timer.domain.entities.toVoiceAction
 import xyz.aprildown.timer.app.base.R as RBase
 
-internal fun BehaviourEntity.getChipText(context: Context): String {
-    fun getDefaultName(): String = context.getString(type.nameRes)
+internal fun BehaviourEntity.getChipText(context: Context, inGroup: Boolean = false): String {
+    fun getDefaultName(inGroup: Boolean): String = context.getString(type.nameRes(inGroup))
 
     return when (type) {
         BehaviourType.MUSIC -> {
@@ -31,7 +33,7 @@ internal fun BehaviourEntity.getChipText(context: Context): String {
                     when (action.vibrationPattern) {
                         is VibrationAction.VibrationPattern.Short -> context.getString(RBase.string.vibration_short)
                         is VibrationAction.VibrationPattern.Long -> context.getString(RBase.string.vibration_long)
-                        else -> getDefaultName()
+                        else -> getDefaultName(inGroup)
                     }
                 )
                 if (action.count > 0) {
@@ -48,13 +50,13 @@ internal fun BehaviourEntity.getChipText(context: Context): String {
         }
         BehaviourType.BEEP -> {
             val count = toBeepAction().count
-            if (count > 0) "${getDefaultName()} $count" else null
+            if (count > 0) "${getDefaultName(inGroup)} $count" else null
         }
         BehaviourType.HALF -> {
             val option = toHalfAction().option
             if (option != HalfAction.OPTION_VOICE) {
                 buildString {
-                    append(getDefaultName())
+                    append(getDefaultName(inGroup))
                     append(" ")
                     append(
                         when (option) {
@@ -70,15 +72,15 @@ internal fun BehaviourEntity.getChipText(context: Context): String {
         }
         BehaviourType.COUNT -> {
             val times = toCountAction().times
-            if (times != CountAction.DEFAULT_TIMES) "${getDefaultName()} $times" else null
+            if (times != CountAction.DEFAULT_TIMES) "${getDefaultName(inGroup)} $times" else null
         }
         BehaviourType.NOTIFICATION -> {
             val duration = toNotificationAction().duration
-            if (duration != 0) "${getDefaultName()} $duration" else null
+            if (duration != 0) "${getDefaultName(inGroup)} $duration" else null
         }
         BehaviourType.SKIP -> {
             buildString {
-                append(getDefaultName())
+                append(getDefaultName(inGroup))
                 append(" ")
                 append(
                     when (val target = toSkipAction().target) {
@@ -95,6 +97,25 @@ internal fun BehaviourEntity.getChipText(context: Context): String {
                 )
             }
         }
+        BehaviourType.SKIP_IN_GROUP -> {
+            buildString {
+                append(getDefaultName(inGroup))
+                append(" ")
+                append(
+                    when (val target = toSkipInGroupAction().target) {
+                        SkipInGroupAction.Target.First -> {
+                            context.getString(RBase.string.skip_first)
+                        }
+                        SkipInGroupAction.Target.Last -> {
+                            context.getString(RBase.string.skip_last)
+                        }
+                        is SkipInGroupAction.Target.Loops -> {
+                            target.loopNumbers.joinToString()
+                        }
+                    }
+                )
+            }
+        }
         else -> null
-    } ?: getDefaultName()
+    } ?: getDefaultName(inGroup)
 }

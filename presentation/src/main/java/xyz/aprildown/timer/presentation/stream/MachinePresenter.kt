@@ -162,7 +162,7 @@ class MachinePresenter @Inject constructor(
                 resetTimer(timerId)
             } else {
                 val (index, _) =
-                    getPrevIndexWithStep(timer.steps, timer.loop, machine.currentIndex)
+                    getPrevNonSkippedIndexWithStep(timer, machine.currentIndex)
                 moveTimer(timerId, index)
             }
         }
@@ -175,7 +175,7 @@ class MachinePresenter @Inject constructor(
                 resetTimer(timerId)
             } else {
                 val (index, _) =
-                    getNextIndexWithStep(timer.steps, timer.loop, machine.currentIndex)
+                    getNextNonSkippedIndexWithStep(timer, machine.currentIndex)
                 moveTimer(timerId, index)
             }
         }

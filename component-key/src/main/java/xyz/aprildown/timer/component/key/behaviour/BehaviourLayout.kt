@@ -37,7 +37,7 @@ class BehaviourLayout @JvmOverloads constructor(
         orientation = VERTICAL
     }
 
-    fun setBehaviours(list: List<BehaviourEntity>) {
+    fun setBehaviours(list: List<BehaviourEntity>, isInGroup: Boolean) {
         val currentSize = currentBehaviours.size
 
         val removeCount = currentBehaviours.size - list.size
@@ -56,7 +56,7 @@ class BehaviourLayout @JvmOverloads constructor(
             if (index < currentSize) {
                 currentBehaviours[index].changeBehaviour(behaviourEntity)
             } else {
-                currentBehaviours.add(BehaviourChipView(createNewChip(), behaviourEntity))
+                currentBehaviours.add(BehaviourChipView(createNewChip(), behaviourEntity, isInGroup))
             }
         }
 
@@ -99,7 +99,8 @@ class BehaviourLayout @JvmOverloads constructor(
 
     private class BehaviourChipView(
         val chip: Chip,
-        private var behaviour: BehaviourEntity
+        private var behaviour: BehaviourEntity,
+        private val isInGroup: Boolean,
     ) {
 
         private val context = chip.context
@@ -117,7 +118,7 @@ class BehaviourLayout @JvmOverloads constructor(
         fun updateChipView() {
             val type = behaviour.type
             chip.setChipIconResource(type.iconRes)
-            chip.setTextIfChanged(behaviour.getChipText(context))
+            chip.setTextIfChanged(behaviour.getChipText(context, isInGroup))
             TooltipCompat.setTooltipText(chip, context.getString(type.despRes))
         }
 

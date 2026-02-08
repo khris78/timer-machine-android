@@ -2,20 +2,66 @@ package xyz.aprildown.timer.presentation.stream
 
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
+import android.util.Log
 import xyz.aprildown.timer.domain.entities.BehaviourEntity
 import xyz.aprildown.timer.domain.entities.BehaviourType
 import xyz.aprildown.timer.domain.entities.HalfAction
 import xyz.aprildown.timer.domain.entities.SkipAction
+import xyz.aprildown.timer.domain.entities.SkipInGroupAction
 import xyz.aprildown.timer.domain.entities.StepEntity
 import xyz.aprildown.timer.domain.entities.TimerEntity
 import xyz.aprildown.timer.domain.entities.VoiceAction
 import xyz.aprildown.timer.domain.entities.toHalfAction
 import xyz.aprildown.timer.domain.entities.toSkipAction
+import xyz.aprildown.timer.domain.entities.toSkipInGroupAction
+import kotlin.collections.indices
 
 /**
  * The whole work is doubled because we need to check loop index.
  * @return null if there is no more step
  */
+internal fun getNextNonSkippedIndexWithStep(
+    timer: TimerEntity,
+    currentIndex: TimerIndex,
+    defaultLast: TimerIndex = TimerIndex.End
+): Pair<TimerIndex, StepEntity.Step?> {
+
+    var nextPair: Pair<TimerIndex, StepEntity.Step?>? = null;
+    var nextIndex: TimerIndex = currentIndex
+    while (true) {
+        nextPair = getNextIndexWithStep(timer.steps, timer.loop, nextIndex)
+        nextIndex = nextPair.first
+        val skip = timer.shouldSkip(nextIndex)
+        val isLast = nextIndex == defaultLast
+        when {
+            skip && isLast -> return Pair(defaultLast, null)
+            skip -> continue
+            else -> return nextPair
+        }
+    }
+}
+
+internal fun getPrevNonSkippedIndexWithStep(
+    timer: TimerEntity,
+    currentIndex: TimerIndex,
+    defaultFirst: TimerIndex = TimerIndex.Start
+): Pair<TimerIndex, StepEntity.Step?> {
+
+    var prevPair: Pair<TimerIndex, StepEntity.Step?>? = null;
+    var prevIndex: TimerIndex = currentIndex
+    while (true) {
+        prevPair = getPrevIndexWithStep(timer.steps, timer.loop, prevIndex)
+        prevIndex = prevPair.first
+        val skip = timer.shouldSkip(prevIndex)
+        val isFirst = prevIndex == defaultFirst
+        when {
+            skip && isFirst -> return Pair(defaultFirst, null)
+            skip -> continue
+            else -> return prevPair
+        }
+    }
+}
+
 internal fun getNextIndexWithStep(
     steps: List<StepEntity>,
     totalLoop: Int,
@@ -914,27 +960,48 @@ fun BehaviourEntity.useTts(): Boolean {
 
 internal fun TimerEntity.shouldSkip(index: TimerIndex): Boolean {
     return when (index) {
-        TimerIndex.Start -> startStep?.shouldSkip(loopIndex = 0, maxLoop = loop) == true
+        TimerIndex.Start -> startStep?.shouldSkip(timerLoopIndex = 0, timerMaxLoop = loop) == true
         is TimerIndex.Step -> {
-            getStep(index)?.shouldSkip(loopIndex = index.loopIndex, maxLoop = loop) == true
+            getStep(index)?.shouldSkip(timerLoopIndex = index.loopIndex, timerMaxLoop = loop) == true
         }
         is TimerIndex.Group -> {
             getStep(index)?.shouldSkip(
-                loopIndex = index.loopIndex,
-                maxLoop = getGroup(index)?.loop ?: 0
+                timerLoopIndex = index.loopIndex,
+                timerMaxLoop = loop,
+                index.groupStepIndex.loopIndex,
+                getGroup(index)?.loop ?: -1
             ) == true
         }
-        TimerIndex.End -> endStep?.shouldSkip(loopIndex = loop - 1, maxLoop = loop) == true
+        TimerIndex.End -> endStep?.shouldSkip(timerLoopIndex = loop - 1, timerMaxLoop = loop) == true
     }
 }
 
-internal fun StepEntity.Step.shouldSkip(loopIndex: Int, maxLoop: Int): Boolean {
-    val target =
-        behaviour.find { it.type == BehaviourType.SKIP }?.toSkipAction()?.target
-            ?: return false
-    return when (target) {
-        SkipAction.Target.Last -> loopIndex == maxLoop - 1
-        SkipAction.Target.First -> loopIndex == 0
-        is SkipAction.Target.Loops -> target.loopIndices.any { it == loopIndex }
+internal fun StepEntity.Step.shouldSkip(timerLoopIndex: Int, timerMaxLoop: Int, groupLoopIndex: Int = -1, groupMaxLoop: Int = -1): Boolean {
+    var ret = false
+
+    val timerTarget =
+        behaviour.find { it.type == BehaviourType.SKIP }
+            ?.toSkipAction()?.target
+    if (timerTarget != null) {
+        ret = when (timerTarget) {
+            SkipAction.Target.Last -> timerLoopIndex == timerMaxLoop - 1
+            SkipAction.Target.First -> timerLoopIndex == 0
+            is SkipAction.Target.Loops -> timerTarget.loopIndices.any { it == timerLoopIndex }
+        }
     }
+
+    if (!ret && groupLoopIndex >= 0) {
+        val groupTarget =
+            behaviour.find { it.type == BehaviourType.SKIP_IN_GROUP }
+                ?.toSkipInGroupAction()?.target
+        if (groupTarget != null) {
+            ret = when (groupTarget) {
+                SkipInGroupAction.Target.Last -> groupLoopIndex == groupMaxLoop - 1
+                SkipInGroupAction.Target.First -> groupLoopIndex == 0
+                is SkipInGroupAction.Target.Loops -> groupTarget.loopIndices.any { it == groupLoopIndex }
+            }
+        }
+    }
+
+    return ret
 }

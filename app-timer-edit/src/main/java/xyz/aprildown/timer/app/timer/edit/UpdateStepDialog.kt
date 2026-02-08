@@ -36,6 +36,7 @@ import xyz.aprildown.timer.domain.entities.toMusicAction
 import xyz.aprildown.timer.domain.entities.toNotificationAction
 import xyz.aprildown.timer.domain.entities.toScreenAction
 import xyz.aprildown.timer.domain.entities.toSkipAction
+import xyz.aprildown.timer.domain.entities.toSkipInGroupAction
 import xyz.aprildown.timer.domain.entities.toVibrationAction
 import xyz.aprildown.timer.domain.entities.toVoiceAction
 import xyz.aprildown.timer.domain.utils.AppTracker
@@ -309,6 +310,17 @@ class UpdateStepDialog :
                         onLoopsChange = { target ->
                             changeBehaviour(BehaviourType.SKIP) {
                                 it.toSkipAction().copy(target = target).toBehaviourEntity()
+                            }
+                        },
+                    )
+                }
+                BehaviourType.SKIP_IN_GROUP -> {
+                    addSkipInGroupItems(
+                        context = context,
+                        action = current.toSkipInGroupAction(),
+                        onLoopsChange = { target ->
+                            changeBehaviour(BehaviourType.SKIP_IN_GROUP) {
+                                it.toSkipInGroupAction().copy(target = target).toBehaviourEntity()
                             }
                         },
                     )

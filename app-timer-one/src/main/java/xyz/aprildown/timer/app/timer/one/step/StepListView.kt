@@ -172,6 +172,7 @@ class StepListView @JvmOverloads constructor(
                             val step = gse as StepEntity.Step
                             VisibleStep(
                                 step = step,
+                                inGroup = true,
                                 number = gi + 1,
                                 id = indexesToIdentifier(i + 1, gi),
                                 currentPositionCallback = this,

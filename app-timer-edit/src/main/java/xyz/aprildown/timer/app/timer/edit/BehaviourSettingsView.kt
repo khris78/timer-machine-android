@@ -18,6 +18,7 @@ import xyz.aprildown.timer.app.base.media.getMediaDuration
 import xyz.aprildown.timer.app.timer.edit.media.BeepDialog
 import xyz.aprildown.timer.app.timer.edit.media.HalfDialog
 import xyz.aprildown.timer.app.timer.edit.media.SkipDialog
+import xyz.aprildown.timer.app.timer.edit.media.SkipInGroupDialog
 import xyz.aprildown.timer.app.timer.edit.media.VibrationDialog
 import xyz.aprildown.timer.app.timer.edit.media.VoiceDialog
 import xyz.aprildown.timer.app.timer.edit.voice.VoiceVariableDialog
@@ -31,6 +32,7 @@ import xyz.aprildown.timer.domain.entities.MusicAction
 import xyz.aprildown.timer.domain.entities.NotificationAction
 import xyz.aprildown.timer.domain.entities.ScreenAction
 import xyz.aprildown.timer.domain.entities.SkipAction
+import xyz.aprildown.timer.domain.entities.SkipInGroupAction
 import xyz.aprildown.timer.domain.entities.VibrationAction
 import xyz.aprildown.timer.domain.entities.VoiceAction
 import xyz.aprildown.timer.domain.utils.Constants
@@ -362,6 +364,40 @@ internal fun MaterialPopupMenuBuilder.addSkipItems(
             }
             callback = {
                 SkipDialog(context).showTargetDialog(
+                    oldTarget = action.target,
+                    func = onLoopsChange,
+                )
+            }
+        }
+    }
+}
+
+internal fun MaterialPopupMenuBuilder.addSkipInGroupItems(
+    context: Context,
+    action: SkipInGroupAction,
+    onLoopsChange: (SkipInGroupAction.Target) -> Unit,
+) {
+    section {
+        item {
+            label = buildString {
+                append(context.getString(RBase.string.name_loop_loop_hint))
+                append(": ")
+                append(
+                    when (val target = action.target) {
+                        SkipInGroupAction.Target.First -> {
+                            context.getString(RBase.string.skip_first)
+                        }
+                        SkipInGroupAction.Target.Last -> {
+                            context.getString(RBase.string.skip_last)
+                        }
+                        is SkipInGroupAction.Target.Loops -> {
+                            target.loopNumbers.joinToString()
+                        }
+                    }
+                )
+            }
+            callback = {
+                SkipInGroupDialog(context).showTargetDialog(
                     oldTarget = action.target,
                     func = onLoopsChange,
                 )

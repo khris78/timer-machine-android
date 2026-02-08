@@ -24,8 +24,9 @@ import xyz.aprildown.timer.presentation.stream.TimerIndex
 import xyz.aprildown.timer.presentation.stream.TimerMachineListener
 import xyz.aprildown.timer.presentation.stream.getFirstIndex
 import xyz.aprildown.timer.presentation.stream.getLastIndex
-import xyz.aprildown.timer.presentation.stream.getNextIndexWithStep
+import xyz.aprildown.timer.presentation.stream.getNextNonSkippedIndexWithStep
 import xyz.aprildown.timer.presentation.stream.getPrevIndexWithStep
+import xyz.aprildown.timer.presentation.stream.getPrevNonSkippedIndexWithStep
 import xyz.aprildown.timer.presentation.stream.getStep
 import xyz.aprildown.timer.presentation.stream.getTimeBeforeIndex
 import xyz.aprildown.timer.presentation.stream.getTotalTime
@@ -170,15 +171,13 @@ class OneViewModel @Inject constructor(
         if (state.isReset || state.isPaused) {
             val timer = timer.value ?: return
             val (index, step) = when (offset) {
-                1 -> getNextIndexWithStep(
-                    timer.steps,
-                    timer.loop,
+                1 -> getNextNonSkippedIndexWithStep(
+                    timer,
                     timerCurrentIndex.value ?: theFirstIndex,
                     timer.getLastIndex()
                 )
-                -1 -> getPrevIndexWithStep(
-                    timer.steps,
-                    timer.loop,
+                -1 -> getPrevNonSkippedIndexWithStep(
+                    timer,
                     timerCurrentIndex.value ?: theFirstIndex,
                     theFirstIndex
                 )
